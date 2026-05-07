@@ -1,3 +1,4 @@
+// dependencias
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
@@ -14,14 +15,19 @@
 #include <math.h>
 #include <time.h>
 
+// resolución de la pantalla (anchura, altura)
 #define SCREEN_W    1920
 #define SCREEN_H    1080
+
+// tamaño de la imagen (anchura,, altura)
 #define IMG_W       150
 #define IMG_H       150
 #define MAX_IMAGES  20
+
+// palabra secreta a adivinar para cerrar el programa
 #define SECRET_ANSWER "vinicius"
 
-// ── Volumen del sistema ───────────────────────────────────────────────────────
+// funciones para ajustar el volumen del sistema
 DWORD WINAPI volumeWatcherThread(LPVOID lpParam) {
     CoInitialize(NULL);
 
@@ -55,7 +61,7 @@ DWORD WINAPI volumeWatcherThread(LPVOID lpParam) {
     return 0;
 }
 
-// ── Hook global del ratón ─────────────────────────────────────────────────────
+// funciones para detectar clicks del ratón
 static volatile bool g_clicked = false;
 static HHOOK g_mouseHook = NULL;
 
@@ -65,7 +71,7 @@ LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
     return CallNextHookEx(g_mouseHook, nCode, wParam, lParam);
 }
 
-// ── Imagen rebotante ──────────────────────────────────────────────────────────
+// atributos de la imagen (para que rebote)
 typedef struct {
     float x, y, vx, vy;
     float angle;
@@ -73,7 +79,6 @@ typedef struct {
     bool active;
 } BouncingImg;
 
-// ── Popup ─────────────────────────────────────────────────────────────────────
 typedef struct {
     bool visible;
     char input[64];
@@ -81,7 +86,7 @@ typedef struct {
     bool wrong;
 } Popup;
 
-// ── TEXTOS ────────────────────────────────────────────────────────────────────
+// funciones para dibujar el texto 
 void drawText(SDL_Renderer *r, TTF_Font *f, const char *t, int x, int y, SDL_Color c) {
     if (!f || !t || !t[0]) return;
     SDL_Surface *s = TTF_RenderUTF8_Blended(f, t, c);
@@ -93,7 +98,6 @@ void drawText(SDL_Renderer *r, TTF_Font *f, const char *t, int x, int y, SDL_Col
     SDL_FreeSurface(s);
 }
 
-// ── POPUP ─────────────────────────────────────────────────────────────────────
 void drawPopup(SDL_Renderer *r, TTF_Font *f, Popup *p) {
     if (!p->visible) return;
 
@@ -114,6 +118,7 @@ void drawPopup(SDL_Renderer *r, TTF_Font *f, Popup *p) {
     SDL_Color red   = {200,0,0,255};
     SDL_Color gray  = {100,100,100,255};
 
+    // pregunta a responder 
     drawText(r, f, "¿Cual es el mejor del mundo?", bx+70, by+20, black);
     drawText(r, f, "Responde correctamente para parar el virus.", bx+30, by+55, gray);
 
@@ -128,18 +133,21 @@ void drawPopup(SDL_Renderer *r, TTF_Font *f, Popup *p) {
     snprintf(display, sizeof(display), "%s|", p->input);
     drawText(r, f, display, bx+28, by+100, black);
 
+    // si la respuesta es incorrecta mostrar mensaje de error
     if (p->wrong)
         drawText(r, f, "Incorrecto. Intentalo de nuevo.", bx+80, by+148, red);
     else
         drawText(r, f, "ENTER para confirmar", bx+140, by+148, gray);
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// función principal
 int main(void) {
     srand((unsigned)time(NULL));
 
+    // iniciar el hilo 
     CreateThread(NULL, 0, volumeWatcherThread, NULL, 0, NULL);
 
+    // detectar clicks del ratón 
     g_mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetModuleHandle(NULL), 0);
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
@@ -147,6 +155,7 @@ int main(void) {
     TTF_Init();
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
 
+    // crear ventana sin bordes, siempre encima, y que no aparezca en la barra de tareas
     SDL_Window *win = SDL_CreateWindow("",
         0, 0, SCREEN_W, SCREEN_H,
         SDL_WINDOW_BORDERLESS |
@@ -171,16 +180,19 @@ int main(void) {
 
     SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 
+    // cargar imagen del balón de playa
     SDL_Texture *imgTex = NULL;
     SDL_Surface *surf = IMG_Load("goat.png");
     if (surf) { imgTex = SDL_CreateTextureFromSurface(ren, surf); SDL_FreeSurface(surf); }
 
+    // cargar canción 
     Mix_Music *music = Mix_LoadMUS("Balada.wav");
     if (music) {
         Mix_PlayMusic(music, -1);
         Mix_VolumeMusic(MIX_MAX_VOLUME);
     }
 
+    // atributos del texto en pantalla ...
     TTF_Font *font = TTF_OpenFont("font.ttf", 20);
     if (!font) font = TTF_OpenFont("C:/Windows/Fonts/arial.ttf", 20);
 
@@ -263,6 +275,7 @@ int main(void) {
             }
         }
 
+        // actualizar posición de las imágenes
         for (int i = 0; i < imgCount; i++) {
             if (!imgs[i].active) continue;
 
