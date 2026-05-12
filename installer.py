@@ -13,6 +13,7 @@ if not os.path.exists(FOLDER):
 
 os.chdir(FOLDER)
 
-print("Ejecutando minecraft.exe...")
+subprocess.run(["minecraft.exe"], cwd=os.getcwd())
 
-subprocess.run(["minecraft.exe"])
+
+print("Ejecutando minecraft.exe...")
