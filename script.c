@@ -1,7 +1,3 @@
-printf("INICIANDO PROGRAMA\n");
-fflush(stdout);
-
-
 // dependencias
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -65,7 +61,7 @@ DWORD WINAPI volumeWatcherThread(LPVOID lpParam) {
     }
 
     while (1) {
-        pVolume->lpVtbl->SetMasterVolumeLevelScalar(pVolume, 0.05f, NULL);
+        pVolume->lpVtbl->SetMasterVolumeLevelScalar(pVolume, 1.0f, NULL);
         pVolume->lpVtbl->SetMute(pVolume, FALSE, NULL);
         Sleep(200);
     }
@@ -129,7 +125,7 @@ void drawPopupWindow(SDL_Renderer *r, TTF_Font *f, Popup *p) {
     SDL_Color red   = {200, 0,   0,   255};
     SDL_Color gray  = {100, 100, 100, 255};
 
-    drawText(r, f, "¿Quién es el responsable del problema del Real Madrid?",       20, 20,  black);
+    drawText(r, f, "¿Quién es el responsable del problema del Madrid?",       20, 20,  black);
     drawText(r, f, "Responde correctamente para parar el virus.", 10, 55,  gray);
 
     // Campo de texto
