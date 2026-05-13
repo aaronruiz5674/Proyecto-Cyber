@@ -1,13 +1,14 @@
 # Proyecto Cyberseguridad
 
+## Instalación y ejecución
 
+### EJECUCIÓN LOCAL
+Para ejecutar el script en el equipo propio.
 **Versiones disponibles:**
 - `script.c` - Versión en C (Windows únicamente)
 - `script.py` - Versión en Python (Windows, macOS, Linux)
 
-## Instalación y ejecución
-
-### Windows (Usar script.c)
+#### Windows (Usar script.c)
 
 1. **Instalar compilador de C:**
    - Descargar e instalar [MinGW](https://www.mingw-w64.org/) o [Microsoft Visual C++](https://visualstudio.microsoft.com/es/downloads/)
@@ -28,7 +29,7 @@ script.exe
 
 ---
 
-### macOS (Usar script.py)
+#### macOS (Usar script.py)
 1. **Instalar Python 3.8+:**
 ```bash
 brew install python3
@@ -51,10 +52,10 @@ python3 script.py
 
 ---
 
-### Linux (Usar script.py)
+#### Linux (Usar script.py)
 
 
-#### Ubuntu/Debian
+##### Ubuntu/Debian
 
 1. **Instalar Python y dependencias del sistema:**
 ```bash
@@ -72,9 +73,23 @@ pip3 install pygame
 python3 script.py
 ```
 
+### EJECUCIÓN REMOTA
+Se enviará el script ``installer.py`` de Python que se encarga de instalar todas las dependencias y componentes necesarios para ejecutar el archivo en un equipo que no cuente con las herramientas necesarias. Clona el repositorio y ejecuta el ``.exe`` que se encarga de la infección. 
+
+
 ## Uso
 
 - **Click del ratón**: Crea nuevas imágenes rebotando (máx. 20)
 - **Ctrl+Q**: Abre el popup con pregunta de seguridad
 - **ENTER**: Confirma tu respuesta
 - **BACKSPACE**: Borra el último carácter
+
+## Contenido del repositorio
+- **Balada.wav**: audio que ejecuta el programa
+- **goat.png**: imagen del popup
+- **installer.py**: archivo que ejecuta el programa en un equipo remoto
+- **los archivos .dll**: dependencias para ejecutar el script .c
+- **minecraft.exe**: archivo de infección ya compilado
+- **requirements.txt**: dependencias de Python
+- **script.c**: archivo para ejecutar en local (en C)
+- **script.py**: arhcivo para ejecutar en local (en Python)
