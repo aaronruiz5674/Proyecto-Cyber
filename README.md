@@ -88,6 +88,7 @@ Se enviará el script ``installer.py`` de Python que se encarga de instalar toda
 - **Balada.wav**: audio que ejecuta el programa
 - **goat.png**: imagen del popup
 - **installer.py**: archivo que ejecuta el programa en un equipo remoto
+- **installer.sh**: alternativa al archivo anterior en lenguaje bash
 - **los archivos .dll**: dependencias para ejecutar el script .c
 - **minecraft.exe**: archivo de infección ya compilado
 - **requirements.txt**: dependencias de Python
